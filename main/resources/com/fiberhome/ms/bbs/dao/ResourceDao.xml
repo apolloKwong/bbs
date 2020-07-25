@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.fiberhome.ms.bbs.dao.ResourceDao">
+
+	<!-- <cache /> -->
+
+	<!-- ///////////////////////////基础接口定义///////////////////////////////// -->
+	
+	 <resultMap id="ResourceResultMap" type="com.fiberhome.ms.bbs.entity.Resource">
+	    <!--
+	       	自动生成
+	    -->
+        <id property="id" column="ID" jdbcType="BIGINT" />
+        <result property="userId" column="USER_ID" jdbcType="BIGINT" />
+        <result property="fieldName" column="FIELD_NAME" jdbcType="VARCHAR" />
+        <result property="resourceName" column="RESOURCE_NAME" jdbcType="VARCHAR" />
+        <result property="resourceType" column="RESOURCE_TYPE" jdbcType="VARCHAR" />
+        <result property="postDate" column="POST_DATE" jdbcType="TIMESTAMP" />
+        <result property="postState" column="POST_STATE" jdbcType="VARCHAR" />
+        <result property="downloads" column="DOWNLOADS" jdbcType="INTEGER" />
+        <result property="content" column="CONTENT" jdbcType="LONGVARCHAR" />
+        <result property="url" column="URL" jdbcType="LONGVARCHAR" />
+        <result property="revision" column="REVISION" jdbcType="INTEGER" />
+        <result property="createUserId" column="CREATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="lastUpdateUserId" column="LAST_UPDATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="createDate" column="CREATE_DATE" jdbcType="TIMESTAMP" />
+        <result property="lastUpdateDate" column="LAST_UPDATE_DATE" jdbcType="TIMESTAMP" />
+        
+        <result property="userMale" column="USER_MALE" jdbcType="VARCHAR" />
+		<result property="userDescription" column="USER_DESCRIPTION" jdbcType="VARCHAR" />
+		<result property="userImage" column="USER_IMAGE" jdbcType="VARCHAR" />
+		<result property="userName" column="USER_NAME" jdbcType="VARCHAR" />
+		<result property="fieldNameReal" column="field_Name_Real" jdbcType="VARCHAR" />
+		<result property="resourceTypeName" column="RESOURCE_TYPE_NAME" jdbcType="VARCHAR" />
+		<!-- 新增文件大小 -->
+		<result property="size" column="SIZE" jdbcType="BIGINT" />
+	</resultMap>
+	
+	<!-- 根据userId查到该用户所以上载的资源  按照发表时间排序-->
+	<select id="getCountByUserId" resultType="int" >
+		SELECT
+			count(1)
+		FROM t_resource T
+		where T.USER_ID = #{userId}
+	</select>
+	<select id="getCountByFieldName" resultType="int">
+		SELECT
+			count(1)
+		FROM t_resource T
+		where T.FIELD_NAME = #{fieldName}
+	</select>
+
+	<select id="getByUserId" pageable="true" resultMap="ResourceResultMap">
+		SELECT
+		T.ID,T.FIELD_NAME,T.RESOURCE_TYPE,T.RESOURCE_NAME,T.DOWNLOADS,T.CONTENT,T.LAST_UPDATE_DATE,T.SIZE,
+        K.LASTNAME AS USER_NAME,J.RESOURCE_TYPE_NAME,
+        L.FIELD_NAME AS FIELD_NAME_REAL
+		FROM t_resource T LEFT JOIN tpl_user_t K on T.USER_ID = K.ID 
+		LEFT JOIN t_resource_type J ON T.RESOURCE_TYPE=J.ID
+		LEFT JOIN t_field L ON T.FIELD_NAME = L.ID
+		where T.USER_ID=#{userId}
+		ORDER BY LAST_UPDATE_DATE DESC
+	</select> 
+	<select id="getByFieldName" resultMap="ResourceResultMap">
+		SELECT
+		T.ID,T.FIELD_NAME,T.RESOURCE_TYPE,T.RESOURCE_NAME,T.DOWNLOADS,T.CONTENT,T.LAST_UPDATE_DATE,T.SIZE,
+        K.LASTNAME AS USER_NAME,J.RESOURCE_TYPE_NAME,
+        L.FIELD_NAME AS FIELD_NAME_REAL
+		FROM t_resource T LEFT JOIN tpl_user_t K on T.USER_ID = K.ID 
+		LEFT JOIN t_resource_type J ON T.RESOURCE_TYPE=J.ID
+		LEFT JOIN t_field L ON T.FIELD_NAME = L.ID
+		where T.FIELD_NAME=#{fieldName}
+		ORDER BY LAST_UPDATE_DATE DESC
+	</select> 
+	<select id="getByFieldName2" pageable="true" resultMap="ResourceResultMap">
+		SELECT
+		T.ID,T.FIELD_NAME,T.RESOURCE_TYPE,T.RESOURCE_NAME,T.DOWNLOADS,T.CONTENT,T.LAST_UPDATE_DATE,T.SIZE,
+        K.LASTNAME AS USER_NAME,J.RESOURCE_TYPE_NAME,
+        L.FIELD_NAME AS FIELD_NAME_REAL
+		FROM t_resource T LEFT JOIN tpl_user_t K on T.USER_ID = K.ID 
+		LEFT JOIN t_resource_type J ON T.RESOURCE_TYPE=J.ID
+		LEFT JOIN t_field L ON T.FIELD_NAME = L.ID
+		where T.FIELD_NAME=#{fieldName}
+		ORDER BY LAST_UPDATE_DATE DESC
+	</select> 
+
+	<select id="lastUpdate" resultMap="ResourceResultMap">
+		SELECT
+		T.ID,T.FIELD_NAME,T.RESOURCE_TYPE,T.RESOURCE_NAME,T.DOWNLOADS,T.CONTENT,T.LAST_UPDATE_DATE,T.SIZE
+
+		FROM t_resource T 
+		ORDER BY LAST_UPDATE_DATE DESC
+		limit 0, 10
+	</select> 
+	<select id="topEveryDay" resultMap="ResourceResultMap">
+		SELECT
+			B.ID,B.resource_name,A.resource_id, count(1) as downloads
+		FROM t_download_record A left join t_resource B on A.resource_id = B.ID
+		where year(A.DOWNLOAD_DATE)=year(now()) and month(A.DOWNLOAD_DATE)=month(now()) and day(A.DOWNLOAD_DATE)=day(now())
+        GROUP BY A.resource_id
+        ORDER BY downloads DESC
+        limit 0, 10
+	</select> 
+	<select id="topEveryWeek" resultMap="ResourceResultMap">
+		SELECT
+			B.ID,B.resource_name,A.resource_id, count(1) as downloads
+		FROM t_download_record A left join t_resource B on A.resource_id = B.ID
+		WHERE YEARWEEK(date_format(A.DOWNLOAD_DATE,'%Y-%m-%d')) = YEARWEEK(now())
+        GROUP BY A.resource_id
+        ORDER BY downloads DESC
+        limit 0, 10
+	</select> 
+	<select id="topEveryMonth" resultMap="ResourceResultMap">
+		SELECT
+			B.ID,B.resource_name,A.resource_id, count(1) as downloads
+		FROM t_download_record A left join t_resource B on A.resource_id = B.ID
+		where year(A.DOWNLOAD_DATE)=year(now()) and month(A.DOWNLOAD_DATE)=month(now()) 
+        GROUP BY A.resource_id
+        ORDER BY downloads DESC
+        limit 0, 10
+	</select> 
+	<select id="topEveryYear" resultMap="ResourceResultMap">
+		SELECT
+			B.ID,B.resource_name,A.resource_id, count(1) as downloads
+		FROM t_download_record A left join t_resource B on A.resource_id = B.ID
+		where year(A.DOWNLOAD_DATE)=year(now()) 
+        GROUP BY A.resource_id
+        ORDER BY downloads DESC
+        limit 0, 10
+	</select> 
+	<select id="top24h" resultMap="ResourceResultMap">
+		SELECT
+				B.ID,B.resource_name,A.resource_id, count(1) as downloads
+			FROM t_download_record A left join t_resource B on A.resource_id = B.ID
+			where `DOWNLOAD_DATE` &gt; DATE_SUB(NOW(),INTERVAL 24 HOUR) AND `DOWNLOAD_DATE` &lt;= NOW()
+	        GROUP BY A.resource_id
+	        ORDER BY downloads DESC
+	        limit 0, 10
+	</select> 
+	<select id="latest24h" resultMap="ResourceResultMap">
+		select * 
+			from t_resource
+			where `LAST_UPDATE_DATE` &gt; DATE_SUB(NOW(),INTERVAL 24 HOUR) AND `LAST_UPDATE_DATE` &lt;= NOW()
+			order by  LAST_UPDATE_DATE DESC
+	        limit 0, 10
+	</select> 
+	
+	
+	<select id="getUserNameByUserId" resultMap="ResourceResultMap">
+		SELECT
+		T.*,K.LASTNAME AS USER_NAME
+		FROM t_resource T LEFT JOIN tpl_user_t K on T.USER_ID = K.ID
+		WHERE T.ID = #{id} 
+	</select> 
+
+	<select id="getById" resultMap="ResourceResultMap">
+	    SELECT
+		T.*,
+        K.LASTNAME AS USER_NAME,J.RESOURCE_TYPE_NAME,
+        L.FIELD_NAME AS FIELD_NAME_REAL
+		FROM t_resource T LEFT JOIN tpl_user_t K on T.USER_ID = K.ID 
+		LEFT JOIN t_resource_type J ON T.RESOURCE_TYPE=J.ID
+		LEFT JOIN t_field L ON T.FIELD_NAME = L.ID
+		WHERE T.ID = #{id} 
+	</select>
+	
+	<select id="getByIds" resultMap="ResourceResultMap">
+		SELECT
+		T.*
+		FROM t_resource T
+		WHERE T.ID in
+		<foreach item="id" collection="ids" open="(" separator="," close=")">
+		  #{id}
+		</foreach>
+
+	</select>
+
+<select id="getCount" resultType="int">
+		SELECT
+		count(1)
+		FROM
+			(
+				SELECT
+					resource.*, USER .LASTNAME AS USER_NAME,
+					lookup.DESP AS field_Name_Real,
+					person.USER_IMAGE,
+					person.USER_DESCRIPTION,
+					person.USER_MALE
+				FROM
+					t_resource resource
+				LEFT JOIN t_person person ON person.USER_ID = resource.USER_ID
+				LEFT JOIN tpl_user_t USER ON USER .ID = resource.USER_ID
+				LEFT JOIN tpl_lookup_t lookup ON resource.FIELD_NAME = lookup. CODE
+				AND lookup.PARENT_ID = (
+					SELECT
+						ID
+					FROM
+						tpl_lookup_t
+					WHERE
+						CODE = 'field'
+				)
+			) T
+		<filter open="Where (" close=")" />
+	</select>
+
+	<select id="selectAll" resultMap="ResourceResultMap">
+		SELECT
+			T.*
+		FROM
+			(
+				SELECT
+					resource.*, USER .LASTNAME AS USER_NAME,
+					lookup.DESP AS field_Name_Real,
+					person.USER_IMAGE,
+					person.USER_DESCRIPTION,
+					person.USER_MALE
+				FROM
+					t_resource resource
+				LEFT JOIN t_person person ON person.USER_ID = resource.USER_ID
+				LEFT JOIN tpl_user_t USER ON USER .ID = resource.USER_ID
+				LEFT JOIN tpl_lookup_t lookup ON resource.FIELD_NAME = lookup. CODE
+				AND lookup.PARENT_ID = (
+					SELECT
+						ID
+					FROM
+						tpl_lookup_t
+					WHERE
+						CODE = 'field'
+				)
+			) T
+		<filter open="Where (" close=")" />
+		ORDER BY POST_DATE
+	</select>
+
+	<select id="select" pageable="true" resultMap="ResourceResultMap">
+        SELECT
+		T.ID,T.FIELD_NAME,T.RESOURCE_TYPE,T.RESOURCE_NAME,T.DOWNLOADS,T.CONTENT,T.LAST_UPDATE_DATE,T.SIZE,
+        K.LASTNAME AS USER_NAME,J.RESOURCE_TYPE_NAME,
+        L.FIELD_NAME AS FIELD_NAME_REAL
+		FROM t_resource T LEFT JOIN tpl_user_t K on T.USER_ID = K.ID 
+		LEFT JOIN t_resource_type J ON T.RESOURCE_TYPE=J.ID
+		LEFT JOIN t_field L ON T.FIELD_NAME = L.ID
+		ORDER BY LAST_UPDATE_DATE DESC
+	</select>
+	
+	<!-- 插入语句  -->
+	<sql id="base_insert_sql">
+		INSERT INTO t_resource (
+		    <if test="id != null">ID,</if>
+			USER_ID,FIELD_NAME,RESOURCE_TYPE,RESOURCE_NAME,
+			POST_DATE,POST_STATE,CONTENT,URL,DOWNLOADS,
+			TENANT_ID,APP_NAME,APP_SCOPE,REVISION, 
+			CREATE_USER_ID,LAST_UPDATE_USER_ID,CREATE_DATE,LAST_UPDATE_DATE,SIZE
+		  ) VALUES (
+		  	<if test="id != null">#{id,jdbcType=NUMERIC},</if>
+			#{userId,jdbcType=BIGINT},#{fieldName,jdbcType=VARCHAR},#{resourceType,jdbcType=VARCHAR},#{resourceName,jdbcType=VARCHAR},
+			#{postDate,jdbcType=TIMESTAMP},#{postState,jdbcType=VARCHAR},
+			#{content,jdbcType=LONGVARCHAR},#{url,jdbcType=LONGVARCHAR},#{downloads,jdbcType=INTEGER},
+
+			#{tenantId,jdbcType=VARCHAR},#{appName,jdbcType=VARCHAR},#{scope,jdbcType=VARCHAR},1, 
+			#{currentUserId,jdbcType=NUMERIC},#{currentUserId,jdbcType=NUMERIC},#{_currentDate},#{_currentDate},#{size,jdbcType=BIGINT}
+		  )
+	</sql>
+
+	<insert id="insert" parameterType="com.fiberhome.ms.bbs.entity.Resource" useGeneratedKeys="true" keyColumn="ID" keyProperty="id">
+		<selectKey resultType="long" keyProperty="id" order="BEFORE" databaseId="oracle">
+        	SELECT t_S.nextval AS value FROM dual  
+		</selectKey>
+	
+		<include refid="base_insert_sql" />
+	</insert>
+	
+	<update id="update" parameterType="com.fiberhome.ms.bbs.entity.Resource">
+		UPDATE t_resource
+		<set>
+		  <if test="userId != null">
+	        USER_ID = #{userId,jdbcType=BIGINT},
+	      </if>
+		  <if test="fieldName != null">
+	        FIELD_NAME = #{fieldName,jdbcType=BIGINT},
+	      </if>
+		  <if test="resourceType != null">
+	        RESOURCE_TYPE = #{resourceType,jdbcType=VARCHAR},
+	      </if>
+	      <if test="resourceName != null">
+	        RESOURCE_NAME = #{resourceName,jdbcType=VARCHAR},
+	      </if>
+		  <if test="postDate != null">
+	        POST_DATE = #{postDate,jdbcType=TIMESTAMP},
+	      </if>
+		  <if test="postState != null">
+	        POST_STATE = #{postState,jdbcType=VARCHAR},
+	      </if>
+		  <if test="downloads != null">
+	        DOWNLOADS = #{downloads,jdbcType=INTEGER},
+	      </if>
+		  <if test="content != null">
+	        CONTENT = #{content,jdbcType=LONGVARCHAR},
+	      </if>
+	      <if test="url != null">
+	        URL = #{url,jdbcType=LONGVARCHAR},
+	      </if>
+	      <if test="size != null">
+	        SIZE = #{size,jdbcType=BIGINT},
+	      </if>
+          REVISION = #{revisionNext,jdbcType=INTEGER},
+          LAST_UPDATE_USER_ID = #{currentUserId,jdbcType=NUMERIC},
+          LAST_UPDATE_DATE = #{_currentDate},
+		</set>
+		WHERE ID = #{id,jdbcType=NUMERIC}
+	
+	</update>
+
+	<delete id="deleteById">
+		DELETE FROM t_resource
+		WHERE ID = #{id}
+
+	</delete>
+	
+	<delete id="deleteByIds">
+		DELETE FROM t_resource
+		WHERE ID in
+	    <foreach item="id" collection="ids" open="(" separator="," close=")">
+	     #{id}
+	    </foreach>
+
+	</delete>
+	
+	<update id="downloadsPlusOne">
+		UPDATE
+		t_resource 
+		SET DOWNLOADS = DOWNLOADS+1
+		WHERE ID = ${id}
+	</update>
+
+	<!-- //////////////////////////////////////////////////////////// -->
+ 
+</mapper>
+

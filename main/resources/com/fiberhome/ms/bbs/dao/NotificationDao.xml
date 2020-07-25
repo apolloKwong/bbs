@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.fiberhome.ms.bbs.dao.NotificationDao">
+
+	<!-- <cache /> -->
+
+	<!-- ///////////////////////////基础接口定义///////////////////////////////// -->
+	
+	 <resultMap id="NotificationResultMap" type="com.fiberhome.ms.bbs.entity.Notification">
+	    <!--
+	       	自动生成
+	    -->
+        <id property="id" column="ID" jdbcType="BIGINT" />
+        <result property="type" column="TYPE" jdbcType="INTEGER" />
+        <result property="senderId" column="SENDER_ID" jdbcType="BIGINT" />
+        <result property="recipientId" column="RECIPIENT_ID" jdbcType="BIGINT" />
+        <result property="status" column="STATUS" jdbcType="INTEGER" />
+        <result property="tId" column="T_ID" jdbcType="BIGINT" />
+        <result property="articleId" column="ARTICLE_ID" jdbcType="BIGINT" />
+        <result property="revision" column="REVISION" jdbcType="INTEGER" />
+        <result property="createUserId" column="CREATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="lastUpdateUserId" column="LAST_UPDATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="createDate" column="CREATE_DATE" jdbcType="TIMESTAMP" />
+        <result property="lastUpdateDate" column="LAST_UPDATE_DATE" jdbcType="TIMESTAMP" />
+        
+        <result property="senderName" column="SENDER_NAME" jdbcType="VARCHAR" />
+        <result property="articleName" column="ARTICLE_NAME" jdbcType="VARCHAR" />
+	</resultMap>
+	
+    
+	<select id="getById" resultMap="NotificationResultMap">
+		SELECT
+		T.*
+		FROM t_notification T
+		WHERE T.ID = #{id} 
+	</select>
+	
+	
+	<select id="getByIds" resultMap="NotificationResultMap">
+		SELECT
+		T.*
+		FROM t_notification T
+		WHERE T.ID in
+		<foreach item="id" collection="ids" open="(" separator="," close=")">
+		  #{id}
+		</foreach>
+	</select>
+
+	<select id="getCount" resultType="int">
+		SELECT
+			count(1)
+		FROM t_notification T
+		<filter open="AND (" close=")" />
+	</select>
+
+	<select id="selectAll" resultMap="NotificationResultMap">
+		SELECT
+		T.*
+		FROM t_notification T
+		<filter open="AND (" close=")" />
+	</select>
+
+	<select id="select" pageable="true" resultMap="NotificationResultMap">
+		SELECT
+		T.*
+		FROM t_notification T
+
+	</select>
+	
+	<!-- 插入语句  -->
+	<sql id="base_insert_sql">
+		INSERT INTO t_notification (
+		    <if test="id != null">ID,</if>
+			TYPE,SENDER_ID,RECIPIENT_ID,
+			STATUS,T_ID,ARTICLE_ID,
+			TENANT_ID,APP_NAME,APP_SCOPE,REVISION, 
+			CREATE_USER_ID,LAST_UPDATE_USER_ID,CREATE_DATE,LAST_UPDATE_DATE 
+		  ) VALUES (
+		  	<if test="id != null">#{id,jdbcType=NUMERIC},</if>
+			#{type,jdbcType=INTEGER},#{senderId,jdbcType=BIGINT},#{recipientId,jdbcType=BIGINT},
+			#{status,jdbcType=INTEGER},#{tId,jdbcType=BIGINT},#{articleId,jdbcType=BIGINT},
+			#{tenantId,jdbcType=VARCHAR},#{appName,jdbcType=VARCHAR},#{scope,jdbcType=VARCHAR},1, 
+			#{currentUserId,jdbcType=NUMERIC},#{currentUserId,jdbcType=NUMERIC},#{_currentDate},#{_currentDate} 
+		  )
+	</sql>
+
+	<insert id="insert" parameterType="com.fiberhome.ms.bbs.entity.Notification" useGeneratedKeys="true" keyColumn="ID" keyProperty="id">
+		<selectKey resultType="long" keyProperty="id" order="BEFORE" databaseId="oracle">
+        	SELECT t_notification_S.nextval AS value FROM dual  
+		</selectKey>
+	
+		<include refid="base_insert_sql" />
+	</insert>
+	
+	<update id="update" parameterType="com.fiberhome.ms.bbs.entity.Notification">
+		UPDATE t_notification
+		<set>
+		  <if test="type != null">
+	        TYPE = #{type,jdbcType=INTEGER},
+	      </if>
+		  <if test="senderId != null">
+	        SENDER_ID = #{senderId,jdbcType=BIGINT},
+	      </if>
+	      <if test="recipientId != null">
+	        RECIPIENT_ID = #{recipientId,jdbcType=BIGINT},
+	      </if>
+	      <if test="status != null">
+	        STATUS = #{status,jdbcType=INTEGER},
+	      </if>
+	      <if test="tId != null">
+	        T_ID = #{tId,jdbcType=BIGINT},
+	      </if>
+	      <if test="articleId != null">
+	        ARTICLE_ID = #{articleId,jdbcType=BIGINT},
+	      </if>
+          REVISION = #{revisionNext,jdbcType=INTEGER},
+          LAST_UPDATE_USER_ID = #{currentUserId,jdbcType=NUMERIC},
+          LAST_UPDATE_DATE = #{_currentDate},
+		</set>
+		WHERE ID = #{id,jdbcType=NUMERIC}
+		and TENANT_ID = #{_tenantId}
+	</update>
+
+	<delete id="deleteById">
+		DELETE FROM t_notification
+		WHERE TYPE = #{type} and T_ID = #{tId}
+	</delete>
+	
+	<delete id="deleteByIds">
+		DELETE FROM t_notification
+		WHERE ID in
+	    <foreach item="id" collection="ids" open="(" separator="," close=")">
+	     #{id}
+	    </foreach>
+	</delete>
+	
+	<delete id="deleteByTwoIds">
+		DELETE FROM t_notification
+		WHERE TYPE = #{type} AND T_ID = #{tId}
+	</delete> 
+	
+	<select id="getByUserId" pageable="true" resultMap="NotificationResultMap">
+		SELECT
+		T.*,K.LASTNAME AS SENDER_NAME,S.ARTICLE_NAME AS ARTICLE_NAME
+		FROM t_notification T LEFT JOIN tpl_user_t K on T.SENDER_ID = K.ID 
+		LEFT JOIN t_article S on T.ARTICLE_ID = S.ID 
+		where T.RECIPIENT_ID=#{userId}
+		ORDER BY LAST_UPDATE_DATE DESC
+	</select> 
+
+	<select id="getCountByUserId" resultType="int" >
+		SELECT
+			count(1)
+		FROM t_notification T
+		where T.RECIPIENT_ID = #{userId}
+	</select>
+	
+	<select id="getBadgeNumber" resultType="int" >
+		SELECT
+			count(1)
+		FROM t_notification T
+		where T.RECIPIENT_ID = #{recipientId} and T.STATUS = 0
+	</select>
+	
+	<update id="setRead" parameterType="com.fiberhome.ms.bbs.entity.Notification">
+		UPDATE t_notification
+		<set>
+          STATUS = 1,
+		</set>
+		WHERE RECIPIENT_ID = #{recipientId}
+	</update>
+	
+	<update id="setSingleRead" parameterType="com.fiberhome.ms.bbs.entity.Notification">
+		UPDATE t_notification
+		<set>
+          STATUS = 1,
+		</set>
+		WHERE ID = #{id}
+	</update>
+	
+	
+
+	<!-- //////////////////////////////////////////////////////////// -->
+ 
+</mapper>
+

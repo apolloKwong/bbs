@@ -1,0 +1,6 @@
+{
+  "name": "LazyCascader",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./LazyCascader.js"
+}

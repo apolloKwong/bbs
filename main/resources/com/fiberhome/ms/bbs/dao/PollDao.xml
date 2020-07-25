@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.fiberhome.ms.bbs.dao.PollDao">
+
+	<!-- <cache /> -->
+
+	<!-- ///////////////////////////基础接口定义///////////////////////////////// -->
+	
+	 <resultMap id="PollResultMap" type="com.fiberhome.ms.bbs.entity.Poll">
+	    <!--
+	       	自动生成
+	    -->
+        <id property="id" column="ID" jdbcType="BIGINT" />
+        <result property="userId" column="USER_ID" jdbcType="BIGINT" />
+        <result property="title" column="TITLE" jdbcType="VARCHAR" />
+        <result property="hits" column="HITS" jdbcType="INTEGER" />
+        <result property="status" column="STATUS" jdbcType="INTEGER" />
+        <result property="revision" column="REVISION" jdbcType="INTEGER" />
+        <result property="createUserId" column="CREATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="lastUpdateUserId" column="LAST_UPDATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="createDate" column="CREATE_DATE" jdbcType="TIMESTAMP" />
+        <result property="lastUpdateDate" column="LAST_UPDATE_DATE" jdbcType="TIMESTAMP" />
+        <result property="deadline" column="DEADLINE" jdbcType="TIMESTAMP" />
+        
+        <result property="userName" column="USER_NAME" jdbcType="VARCHAR" />
+	</resultMap>
+	
+
+	<select id="getById" resultMap="PollResultMap">
+		SELECT
+		T.*
+		FROM t_poll T
+		WHERE T.ID = #{id} 
+	</select>
+	
+	
+	<select id="getByIds" resultMap="PollResultMap">
+		SELECT
+		T.*
+		FROM t_poll T
+		WHERE T.ID in
+		<foreach item="id" collection="ids" open="(" separator="," close=")">
+		  #{id}
+		</foreach>
+	</select>
+
+	<select id="getCount" resultType="int">
+		SELECT
+			count(1)
+		FROM t_poll T
+		<filter open="AND (" close=")" />
+	</select>
+
+	<select id="selectAll" resultMap="PollResultMap">
+		SELECT
+		T.*
+		FROM t_poll T
+		<filter open="AND (" close=")" />
+	</select>
+
+	<select id="select" pageable="true" resultMap="PollResultMap">
+		SELECT T.ID,T.TITLE,T.STATUS,T.LAST_UPDATE_DATE,K.LASTNAME AS USER_NAME
+		FROM t_poll T LEFT JOIN tpl_user_t K on T.USER_ID = K.ID 
+		ORDER BY LAST_UPDATE_DATE DESC
+
+	</select>
+	
+	<!-- 插入语句  -->
+	<sql id="base_insert_sql">
+		INSERT INTO t_poll (
+		    <if test="id != null">ID,</if>
+			TITLE,USER_ID,HITS,STATUS,
+			TENANT_ID,APP_NAME,APP_SCOPE,REVISION, 
+			CREATE_USER_ID,LAST_UPDATE_USER_ID,CREATE_DATE,LAST_UPDATE_DATE,DEADLINE 
+		  ) VALUES (
+		  	<if test="id != null">#{id,jdbcType=NUMERIC},</if>
+		  	#{title,jdbcType=VARCHAR},#{userId,jdbcType=BIGINT},#{hits,jdbcType=INTEGER},#{status,jdbcType=INTEGER},
+			#{tenantId,jdbcType=VARCHAR},#{appName,jdbcType=VARCHAR},#{scope,jdbcType=VARCHAR},1, 
+			#{currentUserId,jdbcType=NUMERIC},#{currentUserId,jdbcType=NUMERIC},#{_currentDate},#{_currentDate},#{deadline,jdbcType=TIMESTAMP} 
+		  )
+	</sql>
+
+	<insert id="insert" parameterType="com.fiberhome.ms.bbs.entity.Poll" useGeneratedKeys="true" keyColumn="ID" keyProperty="id">
+		<selectKey resultType="long" keyProperty="id" order="BEFORE" databaseId="oracle">
+        	SELECT t_poll_S.nextval AS value FROM dual  
+		</selectKey>
+	
+		<include refid="base_insert_sql" />
+	</insert>
+	
+	<update id="update" parameterType="com.fiberhome.ms.bbs.entity.Poll">
+		UPDATE t_poll
+		<set>
+		  <if test="title != null">
+	        TITLE = #{title,jdbcType=VARCHAR},
+	      </if>
+		  <if test="userId != null">
+	        USER_ID = #{userId,jdbcType=BIGINT},
+	      </if>
+	      <if test="hits != null">
+	        HITS = #{hits,jdbcType=INTEGER},
+	      </if>
+		  <if test="status != null">
+	        STATUS = #{status,jdbcType=INTEGER},
+	      </if>
+          REVISION = #{revisionNext,jdbcType=INTEGER},
+          LAST_UPDATE_USER_ID = #{currentUserId,jdbcType=NUMERIC},
+          LAST_UPDATE_DATE = #{_currentDate},
+		</set>
+		WHERE ID = #{id,jdbcType=NUMERIC}
+	</update>
+
+	<delete id="deleteById">
+		DELETE FROM t_poll
+		WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteByIds">
+		DELETE FROM t_poll
+		WHERE ID in
+	    <foreach item="id" collection="ids" open="(" separator="," close=")">
+	     #{id}
+	    </foreach>
+	</delete>
+	
+
+	<!-- //////////////////////////////////////////////////////////// -->
+ 
+</mapper>
+

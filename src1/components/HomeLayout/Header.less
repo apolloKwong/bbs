@@ -1,0 +1,160 @@
+@media screen and (min-width:1600px){ 
+  .header {
+      width:1436px;
+      .header_info{
+          .logo{
+              width:430px;      
+          }
+          .search{
+              width:300px;
+          }
+          .message{
+              width:101px;
+          }
+          .user{
+              width:101px;
+          }
+          .help{
+             width:101px;
+          }
+      }
+      .navigation{
+	  width:1436px;
+	}
+  }
+} 
+@media screen and (min-width: 850px) and (max-width: 1599px) {
+ .header {
+      width:90%;
+      .header_info{
+          .logo{
+              width:30%;
+          }
+          .search{
+              width:20%;
+          }
+          .message{
+              width:8%;
+          }
+          .user{
+              width:7%;
+          }
+          .help{
+              width:7%;
+          }
+      }
+      .navigation{
+	  width:90%;	  
+	}
+  }   
+}
+@media screen and (max-width: 849px) {   
+ .header {
+      width:750px;
+      .header_info{
+          .logo{
+              width:30%;
+          }
+          .search{
+              width:20%;
+          }
+          .message{
+              width:8%;
+          }
+          .user{
+              width:7%;
+          }
+          .help{
+              width:7%;
+          }
+      }
+      .navigation{
+	  	  width:750px;
+	}
+  }
+}
+
+
+.header {
+    height:140px;
+    background:#fff;  
+    z-index:100;
+    margin: auto;
+    position: fixed;
+    top:0px;
+    left:0px;
+    right:0px;
+    float:left;
+    .header_info{
+            // background:#666;
+        margin-top:5px;
+        .logo{      
+            height:60px;
+            color:black;
+            background:url('../../views/images/首页/云创俱乐部.png')no-repeat ;
+            background-size: 100% 100%;
+            float:left;
+            //background:red;            
+        }
+        .search{
+            float:left;
+            margin-left:10%;
+            margin-top:18px;
+            //background:green;
+        }
+        .message{     
+           // height:70px;
+           // color:black;
+           // background:#666;
+            float:left;
+            margin-left:10%;
+            margin-top:15px;
+            //background:pink;
+
+        }
+
+        .user{
+            width:60px;
+            height:70px;
+          //img:../../views/images/首页/u13.png;
+           background: url('../../views/images/首页/u13.png')no-repeat;
+           background-size: 60px 60px;
+            float:left;
+            margin-left:2%;
+            margin-top:6px;
+             //  background:yellow;
+        }
+        .help{
+           // background:#666;
+            float:left;
+            margin-left:4%;
+            text-align: center;
+            font-size: 22px;
+            font-family: "微软雅黑";
+            margin-top:20px;
+        }
+    }
+    .navigation{
+        margin:80px auto;
+        height:56px;
+        background-color:#fff;
+        position:fixed;
+        z-index:10;
+        .nav{//ROw对应的nav
+            background-color:#f5f8f5;
+            //background-color:rgba(168,145,145, 0.9);
+            height:56px;
+            font-size:24px;
+            text-align:center;      
+            a{
+               color:#000;
+            }
+        }
+       
+    }
+
+}   
+
+
+
+

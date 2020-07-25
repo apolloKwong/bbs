@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.fiberhome.ms.bbs.dao.PollRecordDao">
+
+	<!-- <cache /> -->
+
+	<!-- ///////////////////////////基础接口定义///////////////////////////////// -->
+	
+	 <resultMap id="PollRecordResultMap" type="com.fiberhome.ms.bbs.entity.PollRecord">
+	    <!--
+	       	自动生成
+	    -->
+        <id property="id" column="ID" jdbcType="BIGINT" />
+        <result property="pollId" column="POLL_ID" jdbcType="BIGINT" />
+        <result property="pollOptionId" column="POLL_OPTION_ID" jdbcType="BIGINT" />
+        <result property="userId" column="USER_ID" jdbcType="BIGINT" />
+        <result property="revision" column="REVISION" jdbcType="INTEGER" />
+        <result property="createUserId" column="CREATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="lastUpdateUserId" column="LAST_UPDATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="createDate" column="CREATE_DATE" jdbcType="TIMESTAMP" />
+        <result property="lastUpdateDate" column="LAST_UPDATE_DATE" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+
+	<select id="getById" resultMap="PollRecordResultMap">
+		SELECT
+		T.*
+		FROM t_poll_record T
+		WHERE T.ID = #{id} 
+	</select>
+	
+	
+	<select id="getByIds" resultMap="PollRecordResultMap">
+		SELECT
+		T.*
+		FROM t_poll_record T
+		WHERE T.ID in
+		<foreach item="id" collection="ids" open="(" separator="," close=")">
+		  #{id}
+		</foreach>
+	</select>
+
+	<select id="getCount" resultType="int">
+		SELECT
+			count(1)
+		FROM t_poll_record T
+		<filter open="AND (" close=")" />
+	</select>
+
+	<select id="selectAll" resultMap="PollRecordResultMap">
+		SELECT
+		T.*
+		FROM t_poll_record T
+		<filter open="AND (" close=")" />
+	</select>
+
+	<select id="select" pageable="true" resultMap="PollRecordResultMap">
+		SELECT T.ID,T.POLL_ID,T.POLL_OPTION_ID,T.USER_ID,T.LAST_UPDATE_DATE
+		FROM t_poll_record T
+		ORDER BY LAST_UPDATE_DATE DESC
+	</select>
+	
+	<!-- 插入语句  -->
+	<sql id="base_insert_sql">
+		INSERT INTO t_poll_record (
+		    <if test="id != null">ID,</if>
+			POLL_ID,POLL_OPTION_ID,USER_ID,
+			TENANT_ID,APP_NAME,APP_SCOPE,REVISION, 
+			CREATE_USER_ID,LAST_UPDATE_USER_ID,CREATE_DATE,LAST_UPDATE_DATE 
+		  ) VALUES (
+		  	<if test="id != null">#{id,jdbcType=NUMERIC},</if>
+		  	#{pollId,jdbcType=BIGINT},#{pollOptionId,jdbcType=BIGINT},#{userId,jdbcType=BIGINT},
+			#{tenantId,jdbcType=VARCHAR},#{appName,jdbcType=VARCHAR},#{scope,jdbcType=VARCHAR},1, 
+			#{currentUserId,jdbcType=NUMERIC},#{currentUserId,jdbcType=NUMERIC},#{_currentDate},#{_currentDate} 
+		  )
+	</sql>
+
+	<insert id="insert" parameterType="com.fiberhome.ms.bbs.entity.PollRecord" useGeneratedKeys="true" keyColumn="ID" keyProperty="id">
+		<selectKey resultType="long" keyProperty="id" order="BEFORE" databaseId="oracle">
+        	SELECT t_poll_record_S.nextval AS value FROM dual  
+		</selectKey>
+	
+		<include refid="base_insert_sql" />
+	</insert>
+	
+	<update id="update" parameterType="com.fiberhome.ms.bbs.entity.PollRecord">
+		UPDATE t_poll_record
+		<set>
+		  <if test="pollId != null">
+	        POLL_ID = #{pollId,jdbcType=BIGINT},
+	      </if>
+	      <if test="pollOptionId != null">
+	        POLL_OPTION_ID = #{pollOptionId,jdbcType=BIGINT},
+	      </if>
+	      <if test="userId != null">
+	        USER_ID = #{userId,jdbcType=BIGINT},
+	      </if>
+          REVISION = #{revisionNext,jdbcType=INTEGER},
+          LAST_UPDATE_USER_ID = #{currentUserId,jdbcType=NUMERIC},
+          LAST_UPDATE_DATE = #{_currentDate},
+		</set>
+		WHERE ID = #{id,jdbcType=NUMERIC}
+	</update>
+
+	<delete id="deleteById">
+		DELETE FROM t_poll_record
+		WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteByIds">
+		DELETE FROM t_poll_record
+		WHERE ID in
+	    <foreach item="id" collection="ids" open="(" separator="," close=")">
+	     #{id}
+	    </foreach>
+	</delete>
+	<select id="checkIfPolled" resultMap="PollRecordResultMap">
+		SELECT * FROM t_poll_record WHERE POLL_ID = #{pollId} AND USER_ID =#{userId} limit 1
+	</select>
+
+	<!-- //////////////////////////////////////////////////////////// -->
+ 
+</mapper>
+

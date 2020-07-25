@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fiberhome.ms.bbs.dao.PlateDao">
+
+
+	<resultMap type="com.fiberhome.ms.bbs.entity.Plate" id="PlateResultMap">
+
+		<id property="id" column="ID" jdbcType="BIGINT" />
+		<result property="plateName" column="PLATE_NAME" jdbcType="VARCHAR" />
+
+		<result property="plateState" column="PLATE_STATE" jdbcType="VARCHAR" />
+
+		<result property="order" column="PLATE_ORDER" jdbcType="VARCHAR" />
+		<result property="hit" column="HITS" jdbcType="INTEGER" />
+		<result property="revision" column="REVISION" jdbcType="INTEGER" />
+		<result property="createUserId" column="CREATE_USER_ID"
+			jdbcType="NUMERIC" />
+		<result property="lastUpdateUserId" column="LAST_UPDATE_USER_ID"
+			jdbcType="NUMERIC" />
+		<result property="createDate" column="CREATE_DATE" jdbcType="DATE" />
+		<result property="lastUpdateDate" column="LAST_UPDATE_DATE"
+			jdbcType="DATE" />
+	</resultMap>
+
+	<select id="getById" resultMap="PlateResultMap">
+		select * from t_plate t
+		where
+		t.ID=#{id}
+	</select>
+	
+	<select id="getCount" resultType="int">
+		SELECT
+			count(1)
+		FROM t_plate T
+		<filter open="Where (" close=")" />
+	</select>
+
+	<select id="selectAll" resultMap="PlateResultMap">
+		SELECT * FROM t_plate t
+	</select>
+
+	<select id="select" pageable="true" resultMap="PlateResultMap">
+		SELECT T.* FROM t_plate T
+		
+		<filter open="WHERE (" close=")"  tenant="false" />
+	</select>
+
+	<select id="getByName" resultType="com.fiberhome.ms.bbs.entity.Plate">
+		select * from t_plate t
+		where
+		t.name=#{plateName}
+	</select>
+
+	<update id="update" parameterType="com.fiberhome.ms.bbs.entity.Plate">
+		UPDATE t_plate
+		<set>
+			<if test="plateName != null">
+				PLATE_NAME = #{plateName,jdbcType=VARCHAR},
+			</if>
+			<if test="status != null">
+				PLATE_STATE = #{plateState,jdbcType=VARCHAR},
+			</if>
+			<if test="order != null">
+				PLATE_ORDER = #{order,jdbcType=VARCHAR},
+			</if>
+			<if test="hit != null">
+				HITS = #{hit,jdbcType=VARCHAR},
+			</if>
+			REVISION = #{revisionNext,jdbcType=INTEGER},
+			LAST_UPDATE_USER_ID =#{currentUserId,jdbcType=NUMERIC},
+			LAST_UPDATE_DATE = #{_currentDate},
+		</set>
+		WHERE ID = #{id,jdbcType=NUMERIC}
+	</update>
+
+	<sql id="base_insert_sql">
+		INSERT INTO t_plate (
+		<if test="id != null">ID,</if>
+		PLATE_NAME,PLATE_STATE,HITS,PLATE_ORDER,TENANT_ID,APP_NAME,APP_SCOPE,REVISION,
+		CREATE_USER_ID,LAST_UPDATE_USER_ID,CREATE_DATE,LAST_UPDATE_DATE )
+		VALUES (
+		<if test="id != null">#{id,jdbcType=NUMERIC},</if>
+		#{plateName,jdbcType=VARCHAR},#{plateState,jdbcType=VARCHAR},#{hit,jdbcType=INTEGER},
+		#{order,jdbcType=VARCHAR},
+		#{tenantId,jdbcType=VARCHAR},#{appName,jdbcType=VARCHAR},#{scope,jdbcType=VARCHAR},1,
+		#{currentUserId,jdbcType=NUMERIC},#{currentUserId,jdbcType=NUMERIC},#{_currentDate},#{_currentDate}
+		)
+	</sql>
+
+	<insert id="insert" parameterType="com.fiberhome.ms.bbs.entity.Plate"
+		useGeneratedKeys="true" keyColumn="ID" keyProperty="id">
+		<selectKey resultType="long" keyProperty="id" order="BEFORE"
+			databaseId="oracle">
+			SELECT plate.nextval AS value FROM dual
+		</selectKey>
+		<include refid="base_insert_sql"></include>
+	</insert>
+
+	<delete id="deleteById">
+		DELETE FROM t_plate
+		WHERE ID = #{id}
+	</delete>
+
+	<delete id="deleteByIds">
+		DELETE FROM t_plate
+		WHERE ID in
+		<foreach item="id" collection="ids" open="(" separator=","
+			close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+
+</mapper>

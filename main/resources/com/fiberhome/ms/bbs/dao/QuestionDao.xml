@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.fiberhome.ms.bbs.dao.QuestionDao">
+
+	<!-- <cache /> -->
+
+	<!-- ///////////////////////////基础接口定义///////////////////////////////// -->
+	
+	 <resultMap id="QuestionResultMap" type="com.fiberhome.ms.bbs.entity.Question">
+	    <!--
+	       	自动生成
+	    -->
+        <id property="id" column="ID" jdbcType="BIGINT" />
+        <result property="classId" column="CLASS_ID" jdbcType="BIGINT" />
+        <result property="userId" column="USER_ID" jdbcType="BIGINT" />
+        <result property="questionDate" column="QUESTION_DATE" jdbcType="TIMESTAMP" />
+        <result property="resolved" column="RESOLVED" jdbcType="INTEGER" />
+        <result property="questionState" column="QUESTION_STATE" jdbcType="INTEGER" />
+        <result property="content" column="CONTENT" jdbcType="LONGVARCHAR" />
+        <result property="revision" column="REVISION" jdbcType="INTEGER" />
+        <result property="createUserId" column="CREATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="lastUpdateUserId" column="LAST_UPDATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="createDate" column="CREATE_DATE" jdbcType="DATE" />
+        <result property="lastUpdateDate" column="LAST_UPDATE_DATE" jdbcType="DATE" />
+	</resultMap>
+	
+	
+	<select id="getQuestionsByClassId" resultMap="QuestionResultMap">
+			
+		SELECT
+		T.*
+		FROM
+			(
+				SELECT
+					T1.* , T2.CLASS_NAME
+				FROM
+					t_question T1
+				LEFT JOIN t_question_classifications T2
+				ON T1.CLASS_ID = T2.ID
+			) T
+		WHERE T.CLASS_ID = #{classId} 
+		
+		ORDER BY QUESTION_DATE DESC
+	</select>
+
+	<select id="getById" resultMap="QuestionResultMap">
+		SELECT
+		T.*
+		FROM t_question T
+		WHERE T.ID = #{id} 
+			
+	</select>
+	
+	
+	<select id="getByIds" resultMap="QuestionResultMap">
+		SELECT
+		T.*
+		FROM t_question T
+		WHERE T.ID in
+		<foreach item="id" collection="ids" open="(" separator="," close=")">
+		  #{id}
+		</foreach>
+			
+	</select>
+
+	<select id="getCount" resultType="int">
+		SELECT
+			count(1)
+		FROM t_question T
+	
+		<filter open="Where (" close=")" />
+	</select>
+
+	<select id="selectAll" resultMap="QuestionResultMap">
+		SELECT
+		T.*
+		FROM t_question T
+		
+		<filter open="Where (" close=")" />
+	</select>
+
+	<select id="select" pageable="true" resultMap="QuestionResultMap">
+		SELECT T.* FROM t_question T
+		
+		<filter open="Where (" close=")" />
+	</select>
+	
+	<!-- 插入语句  -->
+	<sql id="base_insert_sql">
+		INSERT INTO t_question (
+		    <if test="id != null">ID,</if>
+			CLASS_ID,USER_ID,QUESTION_DATE,
+			RESOLVED,QUESTION_STATE,CONTENT,
+
+			TENANT_ID,APP_NAME,APP_SCOPE,REVISION, 
+			CREATE_USER_ID,LAST_UPDATE_USER_ID,CREATE_DATE,LAST_UPDATE_DATE 
+		  ) VALUES (
+		  	<if test="id != null">#{id,jdbcType=NUMERIC},</if>
+			#{classId,jdbcType=BIGINT},#{userId,jdbcType=BIGINT},#{questionDate,jdbcType=TIMESTAMP},
+			#{resolved,jdbcType=INTEGER},#{questionState,jdbcType=INTEGER},#{content,jdbcType=LONGVARCHAR},
+
+			#{tenantId,jdbcType=VARCHAR},#{appName,jdbcType=VARCHAR},#{scope,jdbcType=VARCHAR},1, 
+			#{currentUserId,jdbcType=NUMERIC},#{currentUserId,jdbcType=NUMERIC},#{_currentDate},#{_currentDate} 
+		  )
+	</sql>
+
+	<insert id="insert" parameterType="com.fiberhome.ms.bbs.entity.Question" useGeneratedKeys="true" keyColumn="ID" keyProperty="id">
+		<selectKey resultType="long" keyProperty="id" order="BEFORE" databaseId="oracle">
+        	SELECT t_S.nextval AS value FROM dual  
+		</selectKey>
+	
+		<include refid="base_insert_sql" />
+	</insert>
+	
+	<update id="update" parameterType="com.fiberhome.ms.bbs.entity.Question">
+		UPDATE t_question
+		<set>
+		  <if test="classId != null">
+	        CLASS_ID = #{classId,jdbcType=BIGINT},
+	      </if>
+		  <if test="userId != null">
+	        USER_ID = #{userId,jdbcType=BIGINT},
+	      </if>
+		  <if test="questionDate != null">
+	        QUESTION_DATE = #{questionDate,jdbcType=TIMESTAMP},
+	      </if>
+		  <if test="resolved != null">
+	        RESOLVED = #{resolved,jdbcType=INTEGER},
+	      </if>
+		  <if test="questionState != null">
+	        QUESTION_STATE = #{questionState,jdbcType=INTEGER},
+	      </if>
+		  <if test="content != null">
+	        CONTENT = #{content,jdbcType=LONGVARCHAR},
+	      </if>
+          REVISION = #{revisionNext,jdbcType=INTEGER},
+          LAST_UPDATE_USER_ID = #{currentUserId,jdbcType=NUMERIC},
+          LAST_UPDATE_DATE = #{_currentDate},
+		</set>
+		WHERE ID = #{id,jdbcType=NUMERIC}
+	
+	</update>
+
+	<delete id="deleteById">
+		DELETE FROM t_question
+		WHERE ID = #{id}
+	
+	</delete>
+	
+	<delete id="deleteByIds">
+		DELETE FROM t_question
+		WHERE ID in
+	    <foreach item="id" collection="ids" open="(" separator="," close=")">
+	     #{id}
+	    </foreach>
+	   
+	</delete>
+
+	<!-- //////////////////////////////////////////////////////////// -->
+ 
+</mapper>
+

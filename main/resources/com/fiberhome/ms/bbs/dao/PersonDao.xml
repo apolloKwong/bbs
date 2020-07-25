@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.fiberhome.ms.bbs.dao.PersonDao">
+
+	<!-- <cache /> -->
+
+	<!-- ///////////////////////////基础接口定义///////////////////////////////// -->
+	
+	 <resultMap id="PersonResultMap" type="com.fiberhome.ms.bbs.entity.Person">
+	    <!--
+	       	自动生成
+	    -->
+        <id property="id" column="ID" jdbcType="BIGINT" />
+        <result property="userId" column="USER_ID" jdbcType="BIGINT" />
+        <result property="userMale" column="USER_MALE" jdbcType="VARCHAR" />
+        <result property="userDescription" column="USER_DESCRIPTION" jdbcType="VARCHAR" />
+        <result property="userImage" column="USER_IMAGE" jdbcType="VARCHAR" />
+        <result property="revision" column="REVISION" jdbcType="INTEGER" />
+        <result property="createUserId" column="CREATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="lastUpdateUserId" column="LAST_UPDATE_USER_ID" jdbcType="NUMERIC" />
+        <result property="createDate" column="CREATE_DATE" jdbcType="DATE" />
+        <result property="lastUpdateDate" column="LAST_UPDATE_DATE" jdbcType="DATE" />
+	</resultMap>
+	
+
+	<select id="getById" resultMap="PersonResultMap">
+		SELECT
+		T.*
+		FROM t_person T
+		WHERE T.USER_ID = #{id} 
+
+	</select>
+	
+	
+	<select id="getByIds" resultMap="PersonResultMap">
+		SELECT
+		T.*
+		FROM t_person T
+		WHERE T.ID in
+		<foreach item="id" collection="ids" open="(" separator="," close=")">
+		  #{id}
+		</foreach>
+
+	</select>
+
+	<select id="getCount" resultType="int">
+		SELECT
+			count(1)
+		FROM t_person T
+
+		<filter open="WHERE (" close=")" />
+	</select>
+
+	<select id="selectAll" resultMap="PersonResultMap">
+		SELECT
+		T.*
+		FROM t_person T
+
+		<filter open="WHERE (" close=")" />
+	</select>
+
+	<select id="select" pageable="true" resultMap="PersonResultMap">
+		SELECT T.* FROM t_person T
+
+		<filter open="WHERE (" close=")" />
+	</select>
+	
+	<!-- 插入语句  -->
+	<sql id="base_insert_sql">
+		INSERT INTO t_person (
+		    <if test="id != null">ID,</if>
+			USER_ID,USER_MALE,USER_DESCRIPTION,
+			USER_IMAGE,
+			TENANT_ID,APP_NAME,APP_SCOPE,REVISION, 
+			CREATE_USER_ID,LAST_UPDATE_USER_ID,CREATE_DATE,LAST_UPDATE_DATE 
+		  ) VALUES (
+		  	<if test="id != null">#{id,jdbcType=NUMERIC},</if>
+			#{userId,jdbcType=BIGINT},#{userMale,jdbcType=VARCHAR},#{userDescription,jdbcType=VARCHAR},
+			#{userImage,jdbcType=VARCHAR},
+			#{tenantId,jdbcType=VARCHAR},#{appName,jdbcType=VARCHAR},#{scope,jdbcType=VARCHAR},1, 
+			#{currentUserId,jdbcType=NUMERIC},#{currentUserId,jdbcType=NUMERIC},#{_currentDate},#{_currentDate} 
+		  )
+	</sql>
+
+	<insert id="insert" parameterType="com.fiberhome.ms.bbs.entity.Person" useGeneratedKeys="true" keyColumn="ID" keyProperty="id">
+		<selectKey resultType="long" keyProperty="id" order="BEFORE" databaseId="oracle">
+        	SELECT t_S.nextval AS value FROM dual  
+		</selectKey>
+	
+		<include refid="base_insert_sql" />
+	</insert>
+	
+	<update id="update" parameterType="com.fiberhome.ms.bbs.entity.Person">
+		UPDATE t_person
+		<set>
+		  <if test="userId != null">
+	        USER_ID = #{userId,jdbcType=BIGINT},
+	      </if>
+		  <if test="userMale != null">
+	        USER_MALE = #{userMale,jdbcType=VARCHAR},
+	      </if>
+		  <if test="userDescription != null">
+	        USER_DESCRIPTION = #{userDescription,jdbcType=VARCHAR},
+	      </if>
+		  <if test="userImage != null">
+	        USER_IMAGE = #{userImage,jdbcType=VARCHAR},
+	      </if>
+          REVISION = #{revisionNext,jdbcType=INTEGER},
+          LAST_UPDATE_USER_ID = #{currentUserId,jdbcType=NUMERIC},
+          LAST_UPDATE_DATE = #{_currentDate},
+		</set>
+		WHERE ID = #{id,jdbcType=NUMERIC}
+
+	</update>
+
+	<delete id="deleteById">
+		DELETE FROM t_person
+		WHERE ID = #{id}
+
+	</delete>
+	
+	<delete id="deleteByIds">
+		DELETE FROM t_person
+		WHERE ID in
+	    <foreach item="id" collection="ids" open="(" separator="," close=")">
+	     #{id}
+	    </foreach>
+
+	</delete>
+
+	<!-- //////////////////////////////////////////////////////////// -->
+	
+	<select id="getIdByUId" resultType="java.lang.Long">
+		SELECT
+		T.id
+		FROM t_person T
+		WHERE T.USER_ID = #{userId}
+	</select>
+ 
+</mapper>
+
